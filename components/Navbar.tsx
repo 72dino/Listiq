@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import React from 'react'
 import { Button } from '@/components/ui/button'
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 
 export default function Navbar() {
   return (
@@ -8,8 +9,28 @@ export default function Navbar() {
       <div className="container mx-auto px-6 flex items-center justify-between">
         <Link href="/" className="text-xl font-semibold text-foreground">Listiq</Link>
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="sm"><Link href="/signin">Sign In</Link></Button>
-          <Button asChild size="sm"><Link href="/get-started">Get Started</Link></Button>
+          
+          {/* OVO SE VIDI SAMO KAD KORISNIK NIJE PRIJAVLJEN */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button variant="ghost" size="sm">Sign In</Button>
+            </SignInButton>
+            
+            <SignInButton mode="modal">
+              <Button size="sm">Get Started</Button>
+            </SignInButton>
+          </SignedOut>
+
+          {/* OVO SE VIDI SAMO KAD JE KORISNIK PRIJAVLJEN */}
+          <SignedIn>
+            {/* Link do tvoj generator stranice da korisnik može lako ući */}
+            <Link href="/generate">
+              <Button variant="ghost" size="sm">Dashboard</Button>
+            </Link>
+            {/* Clerkova ikonica profila koja omogućava Logout */}
+            <UserButton afterSignOutUrl="/"/>
+          </SignedIn>
+
         </div>
       </div>
     </header>

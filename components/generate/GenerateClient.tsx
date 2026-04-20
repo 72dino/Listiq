@@ -7,7 +7,6 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import Tabs from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
 
 export default function GenerateClient() {
   const [form, setForm] = useState({
@@ -28,36 +27,22 @@ export default function GenerateClient() {
     followup: 'Generate follow-up messages by clicking Generate.'
   })
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-    const { name, value } = e.target
-    setForm((s) => ({ ...s, [name]: value }))
-  }
-
-  function generateMock() {
-    // legacy mock retained for fallback; prefer calling the API
-    const title = `${form.propertyType} in ${form.location}`
-    const listing = `Listing: ${title} — ${form.size} m², ${form.bedrooms} beds, ${form.bathrooms} baths. Features: ${form.features}. Price €${form.price}.`
-    const buyer = `Hi,\n\nI saw your listing for ${title} and I'm interested. Could we schedule a viewing?\n\nThanks.`
-    const seller = `Hi,\n\nWe can create a compelling listing for your ${form.propertyType} in ${form.location}. Suggested price: €${form.price}.\n\nRegards.`
-    const followup = `Hello,\n\nFollowing up on the ${title} listing — let me know if you have questions.`
-
-    setOutputs({ listing, buyer, seller, followup })
-  }
-
   const [loading, setLoading] = useState(false)
-
-   const [copiedText, setCopiedText] = useState("");
+  const [copiedText, setCopiedText] = useState("")
 
   const commonFeature = ["Parking", "Balcony", "New Construction", "Elevator", "AC", "Furnished", "Renovated", "Garden"];
 
   const addFeatures = (tag: string) => {
     const currentFeatures = form.features;
-
     if(!currentFeatures.toLowerCase().includes(tag.toLowerCase())) {
       const newValue = currentFeatures === '' ? tag : `${currentFeatures}, ${tag}`;
-
       setForm(s => ({...s, features: newValue}));
     }
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    const { name, value } = e.target
+    setForm((s) => ({ ...s, [name]: value }))
   }
 
   async function handleGenerate() {
@@ -68,12 +53,7 @@ export default function GenerateClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       })
-
-      if (!res.ok) {
-        const txt = await res.text()
-        throw new Error(txt || 'Generation failed')
-      }
-
+      if (!res.ok) throw new Error('Generation failed')
       const data = await res.json()
       setOutputs({
         listing: data.listing || 'No listing returned',
@@ -83,18 +63,17 @@ export default function GenerateClient() {
       })
     } catch (err) {
       console.error(err)
-      alert('Error generating content. Check console for details.')
+      alert('Error generating content.')
     } finally {
       setLoading(false)
     }
   }
 
-  async function copyToClipboard(text: string) {
+  async function copyToClipboard(text: string, type: string) {
     try {
       await navigator.clipboard.writeText(text)
-      setCopiedText(type);
-      setTimeout(() => setCopiedText(""), 200);
-      // simple feedback could be added
+      setCopiedText(type)
+      setTimeout(() => setCopiedText(""), 2000)
     } catch (e) {
       console.error('copy failed', e)
     }
@@ -115,7 +94,9 @@ export default function GenerateClient() {
       <div>
         <Textarea value={outputs.buyer} readOnly />
         <div className="mt-2 text-right">
-          <Button onClick={() => copyToClipboard(outputs.buyer)}>Copy</Button>
+          <Button onClick={() => copyToClipboard(outputs.buyer, 'buyer')}>
+            {copiedText === 'buyer' ? 'Copied! ✓' : 'Copy'}
+          </Button>
         </div>
       </div>
     ) },
@@ -123,7 +104,9 @@ export default function GenerateClient() {
       <div>
         <Textarea value={outputs.seller} readOnly />
         <div className="mt-2 text-right">
-          <Button onClick={() => copyToClipboard(outputs.seller)}>Copy</Button>
+          <Button onClick={() => copyToClipboard(outputs.seller, 'seller')}>
+            {copiedText === 'seller' ? 'Copied! ✓' : 'Copy'}
+          </Button>
         </div>
       </div>
     ) },
@@ -131,7 +114,9 @@ export default function GenerateClient() {
       <div>
         <Textarea value={outputs.followup} readOnly />
         <div className="mt-2 text-right">
-          <Button onClick={() => copyToClipboard(outputs.followup)}>Copy</Button>
+          <Button onClick={() => copyToClipboard(outputs.followup, 'followup')}>
+            {copiedText === 'followup' ? 'Copied! ✓' : 'Copy'}
+          </Button>
         </div>
       </div>
     ) }
@@ -140,81 +125,77 @@ export default function GenerateClient() {
   return (
     <div className="container mx-auto px-6 py-12">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <h2 className="text-lg font-semibold mb-4 text-foreground">Property Details</h2>
-          <div className="space-y-3">
-            <label className="text-sm text-muted-foreground block">Property Type</label>
-            <Select name="propertyType" value={form.propertyType} onChange={handleChange}>
-              <option>Apartment</option>
-              <option>House</option>
-              <option>Villa</option>
-              <option>Commercial</option>
-            </Select>
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Property Details</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1">Property Type</label>
+              <Select name="propertyType" value={form.propertyType} onChange={handleChange}>
+                <option>Apartment</option>
+                <option>House</option>
+                <option>Villa</option>
+                <option>Commercial</option>
+              </Select>
+            </div>
 
-            <label className="text-sm text-muted-foreground block">Location</label>
-            <Input name="location" value={form.location} onChange={handleChange} />
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1">Location</label>
+              <Input name="location" value={form.location} onChange={handleChange} />
+            </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-sm text-muted-foreground block">Size (m²)</label>
+                <label className="text-sm text-muted-foreground block mb-1">Size (m²)</label>
                 <Input name="size" type="number" value={form.size} onChange={handleChange} />
               </div>
               <div>
-                <label className="text-sm text-muted-foreground block">Bedrooms</label>
+                <label className="text-sm text-muted-foreground block mb-1">Bedrooms</label>
                 <Input name="bedrooms" type="number" value={form.bedrooms} onChange={handleChange} />
               </div>
               <div>
-                <label className="text-sm text-muted-foreground block">Bathrooms</label>
+                <label className="text-sm text-muted-foreground block mb-1">Bathrooms</label>
                 <Input name="bathrooms" type="number" value={form.bathrooms} onChange={handleChange} />
               </div>
             </div>
 
-            <label className="text-sm text-muted-foreground block">Price (€)</label>
-            <Input name="price" type="number" value={form.price} onChange={handleChange} />
-
-            <label className="text-sm text-muted-foreground block">Special features</label>
-
-            <div className='flex flex-wrap gap-2 mb-2'>
-              {commonFeature.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => addFeatures(tag)}
-                  className = "px-3 py-1 text-[11px] font-medium rounded-md border border-gray-200 bg-white hover:border-black hover:bg-gray-50 transition-all text-gray-600"
-                >
-                  + {tag}
-                </button>
-              ))}
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1">Price (€)</label>
+              <Input name="price" type="number" value={form.price} onChange={handleChange} />
             </div>
 
-            <Textarea name="features" value={form.features} onChange={handleChange} />
-
-            <label className="text-sm text-muted-foreground block">Language</label>
-            <Select name="language" value={form.language} onChange={handleChange}>
-              <option>English</option>
-              <option>Bosnian/Croatian/Serbian</option>
-            </Select>
-
-            <div className="pt-2">
-              <Button onClick={handleGenerate} className="w-full" disabled={loading}>
-                {loading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4 text-primary" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                    Generating...
-                  </span>
-                ) : (
-                  'Generate'
-                )}
-              </Button>
+            <div>
+              <label className="text-sm text-muted-foreground block mb-2">Special Features</label>
+              <div className='flex flex-wrap gap-2 mb-3'>
+                {commonFeature.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => addFeatures(tag)}
+                    className="px-3 py-1 text-[11px] font-medium rounded-md border border-gray-200 bg-white hover:border-black hover:bg-gray-50 transition-all text-gray-600"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+              <Textarea name="features" value={form.features} onChange={handleChange} />
             </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground block mb-1">Language</label>
+              <Select name="language" value={form.language} onChange={handleChange}>
+                <option>English</option>
+                <option>Bosnian/Croatian/Serbian</option>
+              </Select>
+            </div>
+
+            <Button onClick={handleGenerate} className="w-full mt-4" disabled={loading}>
+              {loading ? 'Generating...' : 'Generate'}
+            </Button>
           </div>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold mb-4 text-foreground">Generated Output</h2>
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Generated Output</h2>
           <Tabs items={tabs} />
         </Card>
       </div>
