@@ -46,6 +46,20 @@ export default function GenerateClient() {
 
   const [loading, setLoading] = useState(false)
 
+   const [copiedText, setCopiedText] = useState("");
+
+  const commonFeature = ["Parking", "Balcony", "New Construction", "Elevator", "AC", "Furnished", "Renovated", "Garden"];
+
+  const addFeatures = (tag: string) => {
+    const currentFeatures = form.features;
+
+    if(!currentFeatures.toLowerCase().includes(tag.toLowerCase())) {
+      const newValue = currentFeatures === '' ? tag : `${currentFeatures}, ${tag}`;
+
+      setForm(s => ({...s, features: newValue}));
+    }
+  }
+
   async function handleGenerate() {
     setLoading(true)
     try {
@@ -78,6 +92,8 @@ export default function GenerateClient() {
   async function copyToClipboard(text: string) {
     try {
       await navigator.clipboard.writeText(text)
+      setCopiedText(type);
+      setTimeout(() => setCopiedText(""), 200);
       // simple feedback could be added
     } catch (e) {
       console.error('copy failed', e)
@@ -89,7 +105,9 @@ export default function GenerateClient() {
       <div>
         <Textarea value={outputs.listing} readOnly />
         <div className="mt-2 text-right">
-          <Button onClick={() => copyToClipboard(outputs.listing)}>Copy</Button>
+          <Button onClick={() => copyToClipboard(outputs.listing, 'listing')}>
+            {copiedText === 'listing' ? 'Copied! ✓' : 'Copy'}
+          </Button>
         </div>
       </div>
     ) },
@@ -155,6 +173,20 @@ export default function GenerateClient() {
             <Input name="price" type="number" value={form.price} onChange={handleChange} />
 
             <label className="text-sm text-muted-foreground block">Special features</label>
+
+            <div className='flex flex-wrap gap-2 mb-2'>
+              {commonFeature.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => addFeatures(tag)}
+                  className = "px-3 py-1 text-[11px] font-medium rounded-md border border-gray-200 bg-white hover:border-black hover:bg-gray-50 transition-all text-gray-600"
+                >
+                  + {tag}
+                </button>
+              ))}
+            </div>
+
             <Textarea name="features" value={form.features} onChange={handleChange} />
 
             <label className="text-sm text-muted-foreground block">Language</label>
