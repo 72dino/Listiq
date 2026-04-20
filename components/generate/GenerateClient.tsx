@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import Tabs from '@/components/ui/tabs'
@@ -81,9 +80,9 @@ export default function GenerateClient() {
 
   const tabs = [
     { key: 'listing', label: 'Listing Description', content: (
-      <div>
-        <Textarea value={outputs.listing} readOnly />
-        <div className="mt-2 text-right">
+      <div className="space-y-2">
+        <Textarea value={outputs.listing} readOnly className="min-h-[200px]" />
+        <div className="text-right">
           <Button onClick={() => copyToClipboard(outputs.listing, 'listing')}>
             {copiedText === 'listing' ? 'Copied! ✓' : 'Copy'}
           </Button>
@@ -91,9 +90,9 @@ export default function GenerateClient() {
       </div>
     ) },
     { key: 'buyer', label: 'Buyer Email', content: (
-      <div>
-        <Textarea value={outputs.buyer} readOnly />
-        <div className="mt-2 text-right">
+      <div className="space-y-2">
+        <Textarea value={outputs.buyer} readOnly className="min-h-[200px]" />
+        <div className="text-right">
           <Button onClick={() => copyToClipboard(outputs.buyer, 'buyer')}>
             {copiedText === 'buyer' ? 'Copied! ✓' : 'Copy'}
           </Button>
@@ -101,9 +100,9 @@ export default function GenerateClient() {
       </div>
     ) },
     { key: 'seller', label: 'Seller Email', content: (
-      <div>
-        <Textarea value={outputs.seller} readOnly />
-        <div className="mt-2 text-right">
+      <div className="space-y-2">
+        <Textarea value={outputs.seller} readOnly className="min-h-[200px]" />
+        <div className="text-right">
           <Button onClick={() => copyToClipboard(outputs.seller, 'seller')}>
             {copiedText === 'seller' ? 'Copied! ✓' : 'Copy'}
           </Button>
@@ -111,9 +110,9 @@ export default function GenerateClient() {
       </div>
     ) },
     { key: 'followup', label: 'Follow-up Message', content: (
-      <div>
-        <Textarea value={outputs.followup} readOnly />
-        <div className="mt-2 text-right">
+      <div className="space-y-2">
+        <Textarea value={outputs.followup} readOnly className="min-h-[200px]" />
+        <div className="text-right">
           <Button onClick={() => copyToClipboard(outputs.followup, 'followup')}>
             {copiedText === 'followup' ? 'Copied! ✓' : 'Copy'}
           </Button>
@@ -130,12 +129,17 @@ export default function GenerateClient() {
           <div className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground block mb-1">Property Type</label>
-              <Select name="propertyType" value={form.propertyType} onChange={handleChange}>
+              <select 
+                name="propertyType" 
+                value={form.propertyType} 
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md bg-background text-sm"
+              >
                 <option>Apartment</option>
                 <option>House</option>
                 <option>Villa</option>
                 <option>Commercial</option>
-              </Select>
+              </select>
             </div>
 
             <div>
@@ -182,10 +186,15 @@ export default function GenerateClient() {
 
             <div>
               <label className="text-sm text-muted-foreground block mb-1">Language</label>
-              <Select name="language" value={form.language} onChange={handleChange}>
+              <select 
+                name="language" 
+                value={form.language} 
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md bg-background text-sm"
+              >
                 <option>English</option>
                 <option>Bosnian/Croatian/Serbian</option>
-              </Select>
+              </select>
             </div>
 
             <Button onClick={handleGenerate} className="w-full mt-4" disabled={loading}>
